@@ -63,44 +63,44 @@
                   :id="'id_product_attribute' + productAttributeValue.id"
                   :options="productAttributeValue.variants"
                   :hide-selected="true"
-                  @tag="addNewAttribute"
-                  @open="loadExistAttributes(productAttributeValue.id)"
+                  @tag="addNewAttribute($event, productAttributeValue)"
+                  @open="loadExistAttributes(productAttributeValue.attribute_value.attribute.id)"
                 />
               </div>
             </div>
           </fieldset>
           <div v-if="productNotAssignedAttributes.length">
-          <h2>Непривязанные атрибуты</h2>
-          <fieldset>
-            <div
-              :key="attribute.id"
-              v-for="attribute in productNotAssignedAttributes"
-              class="row"
-            >
-              <div class="col-3">
-                <label class="required"
-                       :for="'id_product_attribute' + attribute.id">{{
-                    attribute.name
-                  }}:</label>
+            <h2>Непривязанные атрибуты</h2>
+            <fieldset>
+              <div
+                :key="attribute.id"
+                v-for="attribute in productNotAssignedAttributes"
+                class="row"
+              >
+                <div class="col-3">
+                  <label class="required"
+                         :for="'id_product_attribute' + attribute.id">{{
+                      attribute.name
+                    }}:</label>
+                </div>
+                <div class="col-6">
+                  <multiselect
+                    v-model="attribute.value"
+                    label="value"
+                    :multiple="false"
+                    :taggable="true"
+                    :options="attribute.variants"
+                    :hide-selected="true"
+                    @tag="addNewAttribute($event, attribute, exist = false)"
+                  />
+                </div>
+                <div class="col-3">
+                  <button v-on:click="addAttributeToProduct(attribute, $event)">Добавить</button>
+                </div>
               </div>
-              <div class="col-6">
-                <multiselect
-                  v-model="attribute.value"
-                  :multiple="false"
-                  :taggable="true"
-                  label="value"
-                  :options="attribute.variants"
-                  :hide-selected="true"
-                  @tag="addNewAttribute"
-                />
-              </div>
-              <div class="col-3">
-                <button v-on:click="addNewAttribute(attribute, $event)">Добавить</button>
-              </div>
-            </div>
-          </fieldset>
+            </fieldset>
 
-        </div>
+          </div>
 
         </div>
         <div class="submit-row">
@@ -290,7 +290,7 @@ export default {
       });
     },
 
-    addNewAttribute(attr, event) {
+    addAttributeToProduct(attr, event) {
       event.preventDefault();
 
       axios.post(`${API_URL}product_attribute/`,
@@ -304,9 +304,36 @@ export default {
         .then(({data}) => {
           data.variants = [];
           this.productAttributeValues.push(data);
-          this.loadExistAttributes(data.id);
+          this.loadExistAttributes(data.attribute_value.attribute.id);
           this.productNotAssignedAttributes.splice(this.productNotAssignedAttributes.findIndex(i => i.id === attr.id), 1);
           this.showUpdatedMessage();
+        });
+    },
+    addNewAttribute(tagValue, attribute, exist = true) {
+      axios.post(`${API_URL}attribute_value/`,
+        {
+          attribute_id: exist ? attribute.attribute_value.attribute.id : attribute.id,
+          value: tagValue
+        },
+        {
+          headers: this.headers
+        })
+        .then(({data}) => {
+          if (exist) {
+            this.loadExistAttributes(data.attribute.id);
+            const index = this.productAttributeValues.findIndex(i => i.attribute_value.attribute.id === attribute.attribute_value.attribute.id);
+            this.productAttributeValues[index].attribute_value = data
+          }
+
+          if (!exist) {
+            this.loadNotExistAttributes();
+            setTimeout(() => {
+
+              const index = this.productNotAssignedAttributes.findIndex(i => i.id === data.attribute.id)
+              this.productNotAssignedAttributes[index].value = data;
+              this.$forceUpdate();
+            }, 500);
+          }
         });
     }
   },
