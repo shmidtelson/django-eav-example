@@ -50,16 +50,22 @@ class Attribute(models.Model):
         return self.name
 
 
-class ProductAttributeValue(models.Model):
+class AttributeValue(models.Model):
+    attribute = models.ForeignKey(
+        Attribute, related_name="attribute", on_delete=models.SET_NULL, null=True
+    )
+    value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.attribute.name} = {self.value}"
+
+
+class ProductAttribute(models.Model):
     product = models.ForeignKey(
         Product, related_name="product", on_delete=models.CASCADE, null=True
     )
-    attribute = models.ForeignKey(Attribute, related_name="product_attribute_value", on_delete=models.RESTRICT,
+    attribute_value = models.ForeignKey(AttributeValue, related_name="product_attribute_value", on_delete=models.RESTRICT,
                                   null=True)
-    value = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ("product", "attribute", "value")
-
-    def __str__(self):
-        return self.value
+        unique_together = ("product", "attribute_value")

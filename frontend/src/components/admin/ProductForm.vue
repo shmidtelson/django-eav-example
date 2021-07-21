@@ -1,11 +1,11 @@
 <template>
   <div id="content-main">
     <ul class="messagelist" v-if="isAddedMessage">
-      <li class="success">The product type “{{product.title}}” was added successfully.</li>
+      <li class="success">The product type “{{ product.title }}” was added successfully.</li>
     </ul>
 
     <ul class="messagelist" v-if="isUpdatedMessage">
-      <li class="success">The product type “{{product.title}}” was updated successfully.</li>
+      <li class="success">The product type “{{ product.title }}” was updated successfully.</li>
     </ul>
 
     <form method="post" id="producttype_form" novalidate="">
@@ -30,9 +30,9 @@
               <select v-model="product.product_type" id="id_product_type">
                 <option value="">---------</option>
                 <option
-                    :key="product_type.id"
-                    v-for="product_type in productTypes"
-                    v-bind:value="product_type.id"
+                  :key="product_type.id"
+                  v-for="product_type in productTypes"
+                  v-bind:value="product_type.id"
                 >
                   {{ product_type.name }}
                 </option>
@@ -40,54 +40,69 @@
             </div>
           </div>
         </fieldset>
-        <h2>Attributes assigned</h2>
-        <fieldset>
-          <div
+        <div v-if="productAttributeValues.length || productNotAssignedAttributes.length" id="attrs">
+          <h2>Привязанные атрибуты</h2>
+          <fieldset>
+            <div
               :key="productAttributeValue.id"
               v-for="productAttributeValue in productAttributeValues"
-          >
-            <label class="required"
-                   :for="'id_product_attribute' + productAttributeValue.id">{{
-                productAttributeValue.attribute.name
-              }}:</label>
-
-            <multiselect
-                v-model="productAttributeValue.value"
-                :multiple="false"
-                :taggable="true"
-                :id="'id_product_attribute' + productAttributeValue.id"
-                :options="productAttributeValue.variants"
-                :hide-selected="true"
-                @tag="addNewAttribute"
-                @open="loadExistAttributes(productAttributeValue.id)"
-            />
-          </div>
-        </fieldset>
-        <h2>Attributes didn`t assigned</h2>
-        <h3>Add new</h3>
-        <fieldset>
-          <div
+              class="row"
+            >
+              <div class="col-3">
+                <label class="required"
+                       :for="'id_product_attribute' + productAttributeValue.id">{{
+                    productAttributeValue.attribute_value.attribute.name
+                  }}:</label>
+              </div>
+              <div class="col-9">
+                <multiselect
+                  v-model="productAttributeValue.attribute_value"
+                  label="value"
+                  :multiple="false"
+                  :taggable="true"
+                  :id="'id_product_attribute' + productAttributeValue.id"
+                  :options="productAttributeValue.variants"
+                  :hide-selected="true"
+                  @tag="addNewAttribute"
+                  @open="loadExistAttributes(productAttributeValue.id)"
+                />
+              </div>
+            </div>
+          </fieldset>
+          <div v-if="productNotAssignedAttributes.length">
+          <h2>Непривязанные атрибуты</h2>
+          <fieldset>
+            <div
               :key="attribute.id"
               v-for="attribute in productNotAssignedAttributes"
-          >
-            <label class="required"
-                   :for="'id_product_attribute' + attribute.id">{{
-                attribute.name
-              }}:</label>
+              class="row"
+            >
+              <div class="col-3">
+                <label class="required"
+                       :for="'id_product_attribute' + attribute.id">{{
+                    attribute.name
+                  }}:</label>
+              </div>
+              <div class="col-6">
+                <multiselect
+                  v-model="attribute.value"
+                  :multiple="false"
+                  :taggable="true"
+                  label="value"
+                  :options="attribute.variants"
+                  :hide-selected="true"
+                  @tag="addNewAttribute"
+                />
+              </div>
+              <div class="col-3">
+                <button v-on:click="addNewAttribute(attribute, $event)">Добавить</button>
+              </div>
+            </div>
+          </fieldset>
 
+        </div>
 
-            <multiselect
-                v-model="attribute.value"
-                :multiple="false"
-                :taggable="true"
-                :options="attribute.variants"
-                :hide-selected="true"
-                @tag="addNewAttribute"
-            />
-
-            <button v-on:click="addNewAttribute(attribute, $event)">Add attribute</button>
-          </div>
-        </fieldset>
+        </div>
         <div class="submit-row">
           <input type="submit" value="Save" class="default" v-on:click="onSave($event)">
         </div>
@@ -128,7 +143,7 @@ export default {
     showAddedMessage() {
       this.isAddedMessage = true;
 
-      setTimeout(()=> {
+      setTimeout(() => {
         this.isAddedMessage = false;
         window.location.replace(`/admin/app/product/${this.product.id}/change/`);
       }, 3000);
@@ -136,7 +151,7 @@ export default {
     showUpdatedMessage() {
       this.isUpdatedMessage = true;
 
-      setTimeout(()=> {
+      setTimeout(() => {
         this.isUpdatedMessage = false;
       }, 5000);
     },
@@ -145,41 +160,44 @@ export default {
 
       if (this.id) {
         axios.put(`/api/product/${this.id}/`,
-            this.product,
-            {
-              headers: this.headers
-            })
-            .then(({data}) => {
-              this.product = data;
-              this.onSaveCurrentAttributes()
-              this.showUpdatedMessage()
-            });
+          this.product,
+          {
+            headers: this.headers
+          })
+          .then(({data}) => {
+            this.product = data;
+            this.onSaveCurrentAttributes()
+            this.showUpdatedMessage()
+          });
       } else {
         axios.post(`/api/product/`,
-            this.product,
-            {
-              headers: this.headers
-            })
-            .then(({data}) => {
-              this.product = data;
-              this.onSaveCurrentAttributes()
-              this.showAddedMessage()
-            });
+          this.product,
+          {
+            headers: this.headers
+          })
+          .then(({data}) => {
+            this.product = data;
+            this.onSaveCurrentAttributes()
+            this.showAddedMessage()
+          });
       }
     },
     onSaveCurrentAttributes() {
-     this.productAttributeValues.map(item => {
-       this.saveAttribute(item);
-     })
+      this.productAttributeValues.map(item => {
+        this.saveAttribute(item);
+      })
     },
     saveAttribute(attr) {
-      if (attr.value){
-        axios.put(`/api/product_attribute_value/${attr.id}/`,
-            attr,
-            {
-              headers: this.headers
-            })
-            .then(() => {});
+      if (attr.attribute_value) {
+        attr.attribute_value_id = attr.attribute_value.id;
+        axios.put(`/api/product_attribute/${attr.id}/`,
+          attr,
+          {
+            headers: this.headers
+          })
+          .then(() => {
+
+          });
       }
     },
     getCurrentProduct() {
@@ -188,115 +206,107 @@ export default {
       axios.get(`/api/product/${this.id}/`, {
         headers: this.headers
       })
-          .then(({data}) => {
-            this.product = data
+        .then(({data}) => {
+          this.product = data
 
-            this.loadNotExistAttributes();
-          });
+          this.loadNotExistAttributes();
+        });
     },
 
     getListProductTypes() {
       axios.get(`/api/product_type/`, {
         headers: this.headers
       })
-          .then(({data}) => {
-            this.productTypes = data
-          });
+        .then(({data}) => {
+          this.productTypes = data
+        });
     },
 
-    getLinkedProductAttributeValues() {
+    getAssignedProductAttributeValues() {
       if (!this.id) return;
 
-      axios.get(`/api/product_attribute_value/?product_id=${this.id}`, {
+      axios.get(`/api/product_attribute/?product_id=${this.id}`, {
         headers: this.headers
       })
-          .then(({data}) => {
-            data.map((item) => {
-              item.variants = []
-              this.loadExistAttributes(item.id)
-              return item;
-            });
-            this.productAttributeValues = data;
+        .then(({data}) => {
+          data.map((item) => {
+            item.variants = []
+            this.loadExistAttributes(item.attribute_value.attribute.id)
+            return item;
           });
+          this.productAttributeValues = data;
+        });
     },
 
     loadExistAttributes(attribute_id) {
-      axios.get(`/api/product_attribute_value/search_attribute_values/`, {
-            params: {
-              product_type_id: this.product.product_type,
-              attribute_id: attribute_id,
-            }
-          },
-          {headers: this.headers})
-          // eslint-disable-next-line no-unused-vars
-          .then(({data}) => {
-            this.productAttributeValues[this._getAttributeIndex(attribute_id)].variants = data.map(item => item.value);
-          });
+      axios.get(`/api/attribute_value/search/`, {
+          params: {
+            attribute_id: attribute_id,
+          }
+        },
+        {headers: this.headers})
+        .then(({data}) => {
+          const index = this.productAttributeValues.findIndex(i => i.attribute_value.attribute.id === attribute_id);
+          this.productAttributeValues[index].variants = data;
+        });
     },
 
-    loadNotExistsAttributes(attribute_id) {
-      axios.get(`/api/product_attribute_value/search_attribute_values/`, {
-            params: {
-              product_type_id: this.product.product_type,
-              attribute_id: attribute_id,
-            }
-          },{headers: this.headers})
-          .then(({data}) => {
-              this.productNotAssignedAttributes[this.productNotAssignedAttributes.findIndex(i => i.id === attribute_id)].variants =
-                  data.map(item => item.value);
-            this.$forceUpdate();
-          });
+    loadNotExistsAttributesById(attribute_id) {
+      axios.get(`/api/attribute_value/search/`, {
+        params: {
+          attribute_id: attribute_id,
+        }
+      }, {headers: this.headers})
+        .then(({data}) => {
+          this.productNotAssignedAttributes[this.productNotAssignedAttributes.findIndex(i => i.id === attribute_id)].variants =
+            data;
+          this.$forceUpdate();
+        });
     },
 
     loadNotExistAttributes() {
       axios.get(`/api/attribute/search_not_defined_attributes/`, {
-            params: {
-              product_type_id: this.product.product_type,
-            }
-          },
-          {headers: this.headers})
-          // eslint-disable-next-line no-unused-vars
-          .then(({data}) => {
-            this.createNotAssignedItems(data);
+          params: {
+            product_type_id: this.product.product_type,
+          }
+        },
+        {headers: this.headers})
+        // eslint-disable-next-line no-unused-vars
+        .then(({data}) => {
+          this.createNotAssignedItems(data);
 
-            this.productNotAssignedAttributes.map(item => {
-              item.variants = [];
-              this.loadNotExistsAttributes(item.id)
-              return item;
-            })
-          });
+          this.productNotAssignedAttributes.map(item => {
+            item.variants = [];
+            this.loadNotExistsAttributesById(item.id)
+            return item;
+          })
+        });
     },
 
     createNotAssignedItems(items) {
       this.productNotAssignedAttributes = items.filter((item) => {
-        return this.productAttributeValues.find(i => i.attribute.slug === item.slug) === undefined;
+        return this.productAttributeValues.find(i => item.id === i.attribute_value.attribute.id) === undefined;
       });
     },
 
-    _getAttributeIndex (attr_id)  {
-      return this.productAttributeValues.findIndex(function (attr) {
-        return attr.id === attr_id
-      });
-    },
-
-    addNewAttribute (attr, event) {
+    addNewAttribute(attr, event) {
       event.preventDefault();
 
-      axios.post(`/api/product_attribute_value/`,
-          {
-            product: this.product.id,
-            value: attr.value,
-            attribute_id: attr.id
-          },
-          {
-            headers: this.headers
-          })
-          .then(({data}) => {
-            data.variants = [];
-            this.productAttributeValues.push(data)
-            this.loadExistAttributes(data.id)
-            this.productNotAssignedAttributes.splice(this.productNotAssignedAttributes.findIndex(i => i.id === attr.id), 1);
-          });
+      axios.post(`/api/product_attribute/`,
+        {
+          product: this.product.id,
+          attribute_value_id: attr.value.id
+        },
+        {
+          headers: this.headers
+        })
+        .then(({data}) => {
+          data.variants = [];
+          this.productAttributeValues.push(data);
+          this.loadExistAttributes(data.id);
+          this.productNotAssignedAttributes.splice(this.productNotAssignedAttributes.findIndex(i => i.id === attr.id), 1);
+          this.showUpdatedMessage();
+        });
     }
   },
   created() {
@@ -307,7 +317,7 @@ export default {
 
     this.getCurrentProduct();
     this.getListProductTypes();
-    this.getLinkedProductAttributeValues();
+    this.getAssignedProductAttributeValues();
   },
 };
 </script>

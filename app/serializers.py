@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from app.models import Product, ProductType, ProductAttributeValue, Attribute
+from app.models import Product, ProductType, ProductAttribute, Attribute, AttributeValue
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -21,11 +21,20 @@ class AttributeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug']
 
 
-class ProductAttributeValueSerializer(serializers.ModelSerializer):
+class AttributeValueSerializer(serializers.ModelSerializer):
     attribute = AttributeSerializer(read_only=True, many=False)
-    attribute_id = serializers.PrimaryKeyRelatedField(
-        queryset=Attribute.objects.all(), source='attribute', write_only=True)
 
     class Meta:
-        model = ProductAttributeValue
-        fields = ['id', 'product','attribute_id', 'attribute', 'value']
+        model = AttributeValue
+        fields = ['id', 'value', 'attribute']
+
+
+class ProductAttributeSerializer(serializers.ModelSerializer):
+    attribute_value = AttributeValueSerializer(read_only=True, many=False)
+    attribute_value_id = serializers.PrimaryKeyRelatedField(
+        queryset=AttributeValue.objects.all(), source='attribute_value', write_only=True)
+
+    ## Нужны валидаторы при создании, чтобы мы не могли 2 раза в один и тот же продукт создать
+    class Meta:
+        model = ProductAttribute
+        fields = ['id', 'product', 'attribute_value_id', 'attribute_value']

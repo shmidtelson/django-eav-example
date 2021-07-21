@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin.views.decorators import staff_member_required
 from .models import *
 
 
@@ -17,15 +16,8 @@ class CategoryAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 
 
-class ProductAttributeValueInline(admin.TabularInline):
-    model = ProductAttributeValue
-    extra = 0
-
-
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [
-        ProductAttributeValueInline
-    ]
+    pass
 
 
 admin.site.register(Product, ProductAdmin)
@@ -38,8 +30,8 @@ class AttributeAdmin(admin.ModelAdmin):
 admin.site.register(Attribute, AttributeAdmin)
 
 
-class ProductAttributeValueAdmin(admin.ModelAdmin):
+class AttributeValueAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register(ProductAttributeValue, ProductAttributeValueAdmin)
+admin.site.register(AttributeValue, AttributeValueAdmin)

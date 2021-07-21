@@ -25,8 +25,9 @@ from app import views
 router = routers.DefaultRouter()
 router.register(r'product', views.ProductViewSet)
 router.register(r'product_type', views.ProductTypeViewSet)
-router.register(r'product_attribute_value', views.ProductAttributeValueViewSet)
+router.register(r'product_attribute', views.ProductAttributeViewSet)
 router.register(r'attribute', views.AttributeViewSet)
+router.register(r'attribute_value', views.AttributeValueViewSet)
 
 
 urlpatterns = [

@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import ProductForm from './components/admin/ProductForm'
+import './assets/grid.css'
 
 Vue.config.productionTip = false
 
