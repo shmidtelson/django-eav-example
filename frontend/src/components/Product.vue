@@ -1,5 +1,6 @@
 <template>
   <div>
+    <router-link :to="{ name: 'home'}"><button>Главная</button></router-link>
     <div v-if="Object.keys(product).length !== 0">
       <h1>PRODUCT</h1>
       <div :key="key" v-for="(value, key) in product">
