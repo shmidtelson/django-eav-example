@@ -115,6 +115,7 @@ import axios from 'axios';
 import {getCookie} from "../../services/helper";
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css';
+import {API_URL} from "../../api"
 
 export default {
   name: "edit-product-form",
@@ -159,7 +160,7 @@ export default {
       e.preventDefault();
 
       if (this.id) {
-        axios.put(`/api/product/${this.id}/`,
+        axios.put(`${API_URL}product/${this.id}/`,
           this.product,
           {
             headers: this.headers
@@ -170,7 +171,7 @@ export default {
             this.showUpdatedMessage()
           });
       } else {
-        axios.post(`/api/product/`,
+        axios.post(`${API_URL}product/`,
           this.product,
           {
             headers: this.headers
@@ -190,7 +191,7 @@ export default {
     saveAttribute(attr) {
       if (attr.attribute_value) {
         attr.attribute_value_id = attr.attribute_value.id;
-        axios.put(`/api/product_attribute/${attr.id}/`,
+        axios.put(`${API_URL}product_attribute/${attr.id}/`,
           attr,
           {
             headers: this.headers
@@ -203,7 +204,7 @@ export default {
     getCurrentProduct() {
       if (!this.id) return;
 
-      axios.get(`/api/product/${this.id}/`, {
+      axios.get(`${API_URL}product/${this.id}/`, {
         headers: this.headers
       })
         .then(({data}) => {
@@ -214,7 +215,7 @@ export default {
     },
 
     getListProductTypes() {
-      axios.get(`/api/product_type/`, {
+      axios.get(`${API_URL}product_type/`, {
         headers: this.headers
       })
         .then(({data}) => {
@@ -225,7 +226,7 @@ export default {
     getAssignedProductAttributeValues() {
       if (!this.id) return;
 
-      axios.get(`/api/product_attribute/?product_id=${this.id}`, {
+      axios.get(`${API_URL}product_attribute/?product_id=${this.id}`, {
         headers: this.headers
       })
         .then(({data}) => {
@@ -239,7 +240,7 @@ export default {
     },
 
     loadExistAttributes(attribute_id) {
-      axios.get(`/api/attribute_value/search/`, {
+      axios.get(`${API_URL}attribute_value/search/`, {
           params: {
             attribute_id: attribute_id,
           }
@@ -252,7 +253,7 @@ export default {
     },
 
     loadNotExistsAttributesById(attribute_id) {
-      axios.get(`/api/attribute_value/search/`, {
+      axios.get(`${API_URL}attribute_value/search/`, {
         params: {
           attribute_id: attribute_id,
         }
@@ -265,7 +266,7 @@ export default {
     },
 
     loadNotExistAttributes() {
-      axios.get(`/api/attribute/search_not_defined_attributes/`, {
+      axios.get(`${API_URL}attribute/search_not_defined_attributes/`, {
           params: {
             product_type_id: this.product.product_type,
           }
@@ -292,7 +293,7 @@ export default {
     addNewAttribute(attr, event) {
       event.preventDefault();
 
-      axios.post(`/api/product_attribute/`,
+      axios.post(`${API_URL}product_attribute/`,
         {
           product: this.product.id,
           attribute_value_id: attr.value.id
@@ -310,14 +311,17 @@ export default {
     }
   },
   created() {
-    const element = document.getElementById('edit-form');
-    if (element && element.dataset.id !== "None") {
-      this.id = element.dataset.id
-    }
+    setTimeout(() => {
+      const element = document.getElementById('edit-form');
 
-    this.getCurrentProduct();
-    this.getListProductTypes();
-    this.getAssignedProductAttributeValues();
+      if (element && element.dataset.id !== "None") {
+        this.id = element.dataset.id
+      }
+
+      this.getCurrentProduct();
+      this.getListProductTypes();
+      this.getAssignedProductAttributeValues();
+    }, 500)
   },
 };
 </script>

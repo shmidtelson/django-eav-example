@@ -139,8 +139,7 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost",
-    "http://127.0.0.1",
+    "http://localhost:8081",
 ]
 
 CATEGORY_ALL_ID = 8
