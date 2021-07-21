@@ -17,7 +17,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class ProductTypeViewSet(viewsets.ModelViewSet):
-    queryset = ProductType.objects.filter(product_attributes__product_types=CATEGORY_ALL_ID)
+    queryset = ProductType.objects.exclude(product_attributes__product_types=CATEGORY_ALL_ID)
     serializer_class = ProductTypeSerializer
     permission_classes = [permissions.AllowAny]
 
